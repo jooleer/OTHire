@@ -3158,68 +3158,100 @@ ReturnValue Player::__queryRemove(const Thing* thing, uint32_t count, uint32_t f
 Cylinder* Player::__queryDestination(int32_t& index, const Thing* thing, Item** destItem,
 	uint32_t& flags)
 {
-	if(index == 0 /*drop to capacity window*/ || index == INDEX_WHEREEVER){
+	if (index == 0 /*drop to capacity window*/ || index == INDEX_WHEREEVER)
+	{
 		*destItem = NULL;
 
 		const Item* item = thing->getItem();
-		if(item == NULL){
+		if (item == NULL)
+		{
 			return this;
 		}
 
-		//find a appropiate slot
-		for(int i = SLOT_FIRST; i < SLOT_LAST; ++i){
-			if(inventory[i] == NULL){
-				if(__queryAdd(i, item, item->getItemCount(), 0) == RET_NOERROR){
+		//find an appropiate slot
+		std::list<Container*> containerList;
+		for (int i = SLOT_FIRST; i < SLOT_LAST; ++i)
+		{
+			Item* inventoryItem = inventory[i];
+			if (inventoryItem)
+			{
+				if (inventoryItem == tradeItem)
+				{
+					continue;
+				}
+
+				//try find an already existing item to stack with
+				if (inventoryItem != item && item->isStackable() && inventoryItem->getID() == item->getID() && inventoryItem->getItemCount() < 100)
+				{
+					*destItem = inventoryItem;
 					index = i;
 					return this;
 				}
-			}
-		}
+				//check sub-containers
+				else if (Container* subContainer = inventoryItem->getContainer())
+				{
+					Cylinder* tmpCylinder = NULL;
+					int32_t tmpIndex = INDEX_WHEREEVER;
+					Item* tmpDestItem = NULL;
 
-		//try containers
-		std::list<Container*> containerList;
-		for(int i = SLOT_FIRST; i < SLOT_LAST; ++i){
-			if(inventory[i] == tradeItem){
-				continue;
-			}
+					tmpCylinder = subContainer->__queryDestination(tmpIndex, item, &tmpDestItem, flags);
+					if (tmpCylinder && tmpCylinder->__queryAdd(tmpIndex, item, item->getItemCount(), flags) == RET_NOERROR)
+					{
+						index = tmpIndex;
+						*destItem = tmpDestItem;
+						return tmpCylinder;
+					}
 
-			if(Container* subContainer = dynamic_cast<Container*>(inventory[i])){
-				if(subContainer->__queryAdd(-1, item, item->getItemCount(), 0) == RET_NOERROR){
-					index = INDEX_WHEREEVER;
-					*destItem = NULL;
-					return subContainer;
+					containerList.push_back(subContainer);
 				}
-
-				containerList.push_back(subContainer);
+			}
+			//empty slot
+			else if (__queryAdd(i, item, item->getItemCount(), flags) == RET_NOERROR)
+			{
+				index = i;
+				*destItem = NULL;
+				return this;
 			}
 		}
 
 		//check deeper in the containers
-		for(std::list<Container*>::iterator it = containerList.begin(); it != containerList.end(); ++it){
-			for(ContainerIterator iit = (*it)->begin(); iit != (*it)->end(); ++iit){
-				if((*iit) == tradeItem){
-					continue;
-				}
+		for (std::list<Container*>::iterator it = containerList.begin(); it != containerList.end(); ++it)
+		{
+			for (ContainerIterator iit = (*it)->begin(); iit != (*it)->end(); ++iit)
+			{
+				if (Container* subContainer = (*iit)->getContainer())
+				{
 
-				Container* subContainer = dynamic_cast<Container*>(*iit);
-				if(subContainer && subContainer->__queryAdd(-1, item, item->getItemCount(), 0) == RET_NOERROR){
-					index = INDEX_WHEREEVER;
-					*destItem = NULL;
-					return subContainer;
+					if (subContainer == tradeItem)
+					{
+						continue;
+					}
+
+					Cylinder* tmpCylinder = NULL;
+					int32_t tmpIndex = INDEX_WHEREEVER;
+					Item* tmpDestItem = NULL;
+
+					tmpCylinder = subContainer->__queryDestination(tmpIndex, item, &tmpDestItem, flags);
+					if (tmpCylinder && tmpCylinder->__queryAdd(tmpIndex, item, item->getItemCount(), flags) == RET_NOERROR)
+					{
+						index = tmpIndex;
+						*destItem = tmpDestItem;
+						return tmpCylinder;
+					}
 				}
 			}
 		}
-
 		return this;
 	}
 
 	Thing* destThing = __getThing(index);
-	if(destThing)
+	if (destThing)
 		*destItem = destThing->getItem();
 
 	Cylinder* subCylinder = dynamic_cast<Cylinder*>(destThing);
 
-	if(subCylinder){
+	if (subCylinder)
+	{
 		index = INDEX_WHEREEVER;
 		*destItem = NULL;
 		return subCylinder;
