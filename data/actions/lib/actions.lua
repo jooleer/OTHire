@@ -118,6 +118,7 @@ function useRope(cid, item, frompos, item2, topos)
 end
 
 local function __doTransformHole__(parameters)
+	local MUD_HOLE = 392
 	local thing = getTileItemById(parameters.pos, MUD_HOLE)
 	local newItem = doTransformItem(thing.uid, parameters.oldType)
 	if parameters.oldaid ~= 0 and newItem then
@@ -174,7 +175,7 @@ local duration = 5 * 60000 -- 5 minutes
 	end
 
 	for i = 1, #POOLS do
-		local pool = getTileItemById(toPosition, POOLS[i]).uid
+		local pool = getTileItemById(topos, POOLS[i]).uid
 		if pool > 0 then
 			doRemoveItem(pool,1)
 		end
@@ -190,7 +191,7 @@ function usePick(cid, item, fromPosition, itemEx, toPosition)
 local FRAGILE_ICE	=	7200
 local ICE_FISHHOLE	=	7236
 local MUD_HOLE = 392
-local duration = 5 * 60000 -- 5 minutes
+local duration = 30 * 1000 -- 30 seconds
 
 	local itemGround = getThingFromPos({x = toPosition.x, y = toPosition.y, z = toPosition.z + 1, stackpos = STACKPOS_GROUND})
 	if(isInArray(ROPE_SPOT, itemGround.itemid) and isMoveable(itemEx.uid) == false and isCorpse(itemEx.uid) == false) then
@@ -199,7 +200,7 @@ local duration = 5 * 60000 -- 5 minutes
 		if itemEx.actionid ~= 0 then
 			doSetItemActionId(itemEx.uid, itemEx.actionid)
 		end
-		addEvent(__doTransformHole__, duration, {oldType = itemEx.itemid, pos = toPosition, oldAid = itemEx.actionid})
+		addEvent(__doTransformHole__, duration, {oldType = itemEx.itemid, pos = toPosition, oldaid = itemEx.actionid})
 		return true
 	end
 
