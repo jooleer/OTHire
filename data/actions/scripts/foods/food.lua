@@ -13,6 +13,7 @@ function onUse(cid, item, frompos, item2, topos)
 		return true
 	end
 	doPlayerFeed(cid, size)
+	doPlayerSay(cid, sound, TALKTYPE_SAY)
 	doRemoveItem(item.uid, 1)
 
 	return true
