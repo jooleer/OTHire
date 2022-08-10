@@ -196,7 +196,6 @@ local duration = 30 * 1000 -- 30 seconds
 	local itemGround = getThingFromPos({x = toPosition.x, y = toPosition.y, z = toPosition.z + 1, stackpos = STACKPOS_GROUND})
 	local toPosStack = getThingFromPos({x = toPosition.x, y = toPosition.y, z = toPosition.z, stackpos = 1})
 	if(isInArray(ROPE_SPOT, itemGround.itemid) and toPosStack.itemid == 0) then
-	--if(isInArray(ROPE_SPOT, itemGround.itemid) and isMoveable(itemEx.uid) == false and isCorpse(itemEx.uid) == false) and isCreature(itemEx.uid) == false then
 		doTransformItem(itemEx.uid, MUD_HOLE)
 		doSendMagicEffect(toPosition, CONST_ME_POFF)
 		if itemEx.actionid ~= 0 then
