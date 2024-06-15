@@ -193,8 +193,14 @@ local ICE_FISHHOLE	=	7236
 local MUD_HOLE = 392
 local duration = 30 * 1000 -- 30 seconds
 
+	if toPosition.x < 1 then -- if player uses pick on itself returns error message (returns as pos 0,0,0)
+		return false
+	end
+	
 	local itemGround = getThingFromPos({x = toPosition.x, y = toPosition.y, z = toPosition.z + 1, stackpos = STACKPOS_GROUND})
 	local toPosStack = getThingFromPos({x = toPosition.x, y = toPosition.y, z = toPosition.z, stackpos = 1})
+	
+	
 	if(isInArray(ROPE_SPOT, itemGround.itemid) and toPosStack.itemid == 0) then
 		doTransformItem(itemEx.uid, MUD_HOLE)
 		doSendMagicEffect(toPosition, CONST_ME_POFF)
@@ -262,3 +268,4 @@ if (item2.itemid == ITEM_PRE_WHEAT) then
 	doDecayItem(item2.uid)
 	return true
 end
+
